@@ -147,6 +147,9 @@ def custom_op_graph(op: CustomOp, *args, out_like: list[torch.Tensor]) -> Graph:
 
 def op_signature(op: mlir.Operation) -> inspect.Signature:
     # TODO: support non-dps outputs
+    for key in op.attributes:
+        print("key = ", key)
+    # print("op.attributes ", op.attributes)
     num_dps_outputs = op.attributes["mogg.num_dps_outputs"].value
     io_specs = [attr.value for attr in op.attributes["mogg.args_io_specs"]]
     arg_names = [attr.value for attr in op.attributes["mogg.arg_src_names"]]

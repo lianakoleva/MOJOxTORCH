@@ -5,7 +5,7 @@
 2. if changes made to mojo_dir/, `mojo package mojo_dir -o kernels.mojopkg`
 
 ### kernels todo
-- [] torch.abs
+- [x] torch.abs
 - [] torch.max
 - [] torch.allclose
 - [] torch.nn.functional.cosine_similarity

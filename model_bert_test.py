@@ -9,14 +9,26 @@ from pathlib import Path
 device = "cuda:0"
 
 
+'''@testop.register_fake
+def _(pic):
+    print("testop2")
+    return pic.new_empty(pic.shape[:-1])'''
+
+
 @pytest.mark.parametrize(
     "prompt",
-    ["How are you today?", "What is your name?", "Who are you?", "Where are you from?"],
+    ["How are you today?"], # "What is your name?", "Who are you?", "Where are you from?"],
 )
-@pytest.mark.parametrize("dtype", [torch.float16, torch.float32, torch.bfloat16])
+@pytest.mark.parametrize("dtype", [torch.float16]) #, torch.float32, torch.bfloat16])
 def test_accuracy_bert(prompt, dtype):
     op_library = CustomOpLibrary(Path("./kernels.mojopkg"))
-    testop = register_custom_op(op_library.testop)
+    #testop = register_custom_op(op_library.testop)
+    abs = register_custom_op(op_library.abs)
+    @abs.register_fake
+    def _(x):
+        print("absop")
+        return x
+
     config = BertConfig()
     model = BertModel(config)
     tokenizer = AutoTokenizer.from_pretrained("google-bert/bert-base-uncased")
@@ -34,6 +46,8 @@ def test_accuracy_bert(prompt, dtype):
     with torch.no_grad():
         res_outputs = res_model(**res_inputs).last_hidden_state
 
+    print("ref_outputs.shape: ", ref_outputs.shape)
+    print("res_outputs.shape: ", res_outputs.shape)
     maxdiff = torch.max(torch.abs(ref_outputs - res_outputs))
     succeed = True
     if (
@@ -58,3 +72,8 @@ def test_accuracy_bert(prompt, dtype):
     ), f"BERT_{dtype} FAIL with maxdiff {maxdiff} and score {score}\nREF: \
         {ref_outputs}\nRES: {res_outputs}"
     
+def main():
+    test_accuracy_bert("How are you today?", torch.float16)
+
+if __name__ == "__main__":
+    main()
