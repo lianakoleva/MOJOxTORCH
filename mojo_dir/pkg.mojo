@@ -72,6 +72,7 @@ struct CosineSimilarity:
         target: StaticString,
         dim: Int = 1,
         eps: Float64 = 1e-8,
+        # TODO: use eps
     ](
         out: OutputTensor,
         x: InputTensor[type = out.type, rank = out.rank + 1],
@@ -81,8 +82,9 @@ struct CosineSimilarity:
         @parameter
         @always_inline
         fn func[width: Int](idx: IndexList[out.rank]) -> SIMD[out.type, width]:
-            #var val_x = x.load[width](idx)
-            #var val_y = y.load[width](idx)
-            return -1.0
+            var dot = (x.load[width](idx) * y.load[width](idx)).reduce_add()
+            var x_norm = sqrt((x.load[width](idx) * x.load[width](idx)).reduce_add())
+            var y_norm = sqrt((y.load[width](idx) * y.load[width](idx)).reduce_add())
+            return dot / (x_norm * y_norm)
 
         foreach[func, target=target](out, ctx)
