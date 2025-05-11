@@ -6,13 +6,7 @@ from transformers import AutoTokenizer, BertConfig, BertModel
 from mojo_custom_class import CustomOpLibrary, register_custom_op
 from pathlib import Path
 
-device = "cuda:0"
-
-
-'''@testop.register_fake
-def _(pic):
-    print("testop2")
-    return pic.new_empty(pic.shape[:-1])'''
+device = "cuda"
 
 
 @pytest.mark.parametrize(
@@ -32,12 +26,12 @@ def test_accuracy_bert(prompt, dtype):
         return x
     allclose = register_custom_op(op_library.allclose)
     @allclose.register_fake
-    def _(x, y): #, atol, rto):
-        return False
-    cosine_similarity = register_custom_op(op_library.cosine_similarity)
-    @cosine_similarity.register_fake
     def _(x, y):
-        return 0.0
+        return False
+    # cosine_similarity = register_custom_op(op_library.cosine_similarity)
+    # @cosine_similarity.register_fake
+    # def _(x, y):
+    #     return 0.0
 
     config = BertConfig()
     model = BertModel(config)
@@ -56,8 +50,6 @@ def test_accuracy_bert(prompt, dtype):
     with torch.no_grad():
         res_outputs = res_model(**res_inputs).last_hidden_state
 
-    print("ref_outputs.shape: ", ref_outputs.shape)
-    print("res_outputs.shape: ", res_outputs.shape)
     maxdiff = torch.max(torch.abs(ref_outputs - res_outputs))
     succeed = True
     if (
@@ -69,7 +61,6 @@ def test_accuracy_bert(prompt, dtype):
         )
         is False
     ):
-        print("about to use cosine_similarity")
         score = torch.nn.functional.cosine_similarity(
             ref_outputs.flatten(),
             res_outputs.flatten(),
@@ -77,7 +68,7 @@ def test_accuracy_bert(prompt, dtype):
             eps=1e-6,
         )
         succeed = score >= 0.99
-        print("score: ", score, "succeed: ", succeed, "maxdiff: ", maxdiff)
+        # print("score: ", score, "succeed: ", succeed, "maxdiff: ", maxdiff)
     assert (
         succeed
     ), f"BERT_{dtype} FAIL with maxdiff {maxdiff} and score {score}\nREF: \
