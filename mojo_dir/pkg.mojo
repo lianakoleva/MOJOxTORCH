@@ -5,6 +5,7 @@ from utils.index import IndexList
 from layout import LayoutTensor, Layout
 from gpu import global_idx
 from math import ceildiv, sqrt
+from max.math import isclose
 from algorithm.functional import vectorize
 
 @register("testop")
@@ -82,3 +83,35 @@ struct Max:
 
         foreach[maxFunc, target=target, simd_width=1](out, ctx)
 
+
+# torch.allclose(input: Tensor, other: Tensor, rtol: float = 1e-05, atol: float = 1e-08, equal_nan: bool = False)
+@register("allclose")
+struct AllClose:
+    @staticmethod
+    fn execute[
+        # The kind of device this is running on: "cpu" or "gpu"
+        target: StaticString,
+    ](
+        out: OutputTensor[type = DType.bool, rank=0],
+        input: InputTensor[type = DType.float32, rank=3],
+        other: InputTensor[type = DType.float32, rank=3],
+        #todo: figure out optional parameters for rtolm atol
+        ctx: DeviceContextPtr,
+    ) raises:
+        @parameter
+        @always_inline
+        fn allcloseFunc[
+            simd_width: Int
+        ](idxs: IndexList[out.rank]) -> SIMD[DType.bool, simd_width]:
+            var i = idxs[0]
+            var j = idxs[1]
+            var k = idxs[2]
+
+            var idx = IndexList[3](i, j, k)
+
+            var val_input = input.load[simd_width](idx).cast[DType.float32]()
+            var val_other = other.load[simd_width](idx).cast[DType.float32]()
+
+            return isclose(val_input, val_other) 
+
+        foreach[allcloseFunc, target=target, simd_width=1](out, ctx)

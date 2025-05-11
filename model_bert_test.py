@@ -33,6 +33,11 @@ def test_accuracy_bert(prompt, dtype):
     def _(x, y):
         # print("maxop")
         return x
+    allclose = register_custom_op(op_library.allclose)
+    @allclose.register_fake
+    def _(x, y): #, atol, rto):
+        # print("allcloseop")
+        return False
 
     config = BertConfig()
     model = BertModel(config)

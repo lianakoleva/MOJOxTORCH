@@ -7,5 +7,5 @@
 ### kernels todo
 - [x] torch.abs
 - [x] torch.max
-- [] torch.allclose
+- [x] torch.allclose
 - [] torch.nn.functional.cosine_similarity
