@@ -115,3 +115,33 @@ struct AllClose:
             return isclose(val_input, val_other) 
 
         foreach[allcloseFunc, target=target, simd_width=1](out, ctx)
+
+@register("cosine_similarity")
+struct CosineSimilarity:
+    @staticmethod
+    fn execute[
+        # The kind of device this is running on: "cpu" or "gpu"
+        target: StaticString,
+    ](
+        out: OutputTensor[type = DType.float32, rank=0],
+        x: InputTensor[type = DType.float32, rank=3],
+        y: InputTensor[type = DType.float32, rank=3],
+        ctx: DeviceContextPtr,
+    ) raises:
+        @parameter
+        @always_inline
+        fn cosineSimilarityFunc[
+            simd_width: Int
+        ](idxs: IndexList[out.rank]) -> SIMD[DType.float32, simd_width]:
+            var i = idxs[0]
+            var j = idxs[1]
+            var k = idxs[2]
+
+            var idx = IndexList[3](i, j, k)
+
+            var val_x = x.load[simd_width](idx).cast[DType.float32]()
+            var val_y = y.load[simd_width](idx).cast[DType.float32]()
+
+            return -1.0 #dot(val_x, val_y).cast[DType.float32]()  
+
+        foreach[cosineSimilarityFunc, target=target, simd_width=1](out, ctx)

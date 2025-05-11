@@ -22,22 +22,22 @@ def _(pic):
 @pytest.mark.parametrize("dtype", [torch.float16]) #, torch.float32, torch.bfloat16])
 def test_accuracy_bert(prompt, dtype):
     op_library = CustomOpLibrary(Path("./kernels.mojopkg"))
-    #testop = register_custom_op(op_library.testop)
     abs = register_custom_op(op_library.abs)
     @abs.register_fake
     def _(x):
-        # print("absop")
         return x
     max = register_custom_op(op_library.max)
     @max.register_fake
     def _(x, y):
-        # print("maxop")
         return x
     allclose = register_custom_op(op_library.allclose)
     @allclose.register_fake
     def _(x, y): #, atol, rto):
-        # print("allcloseop")
         return False
+    cosine_similarity = register_custom_op(op_library.cosine_similarity)
+    @cosine_similarity.register_fake
+    def _(x, y):
+        return 0.0
 
     config = BertConfig()
     model = BertModel(config)
@@ -69,6 +69,7 @@ def test_accuracy_bert(prompt, dtype):
         )
         is False
     ):
+        print("about to use cosine_similarity")
         score = torch.nn.functional.cosine_similarity(
             ref_outputs.flatten(),
             res_outputs.flatten(),
