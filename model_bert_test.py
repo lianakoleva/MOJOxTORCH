@@ -26,7 +26,12 @@ def test_accuracy_bert(prompt, dtype):
     abs = register_custom_op(op_library.abs)
     @abs.register_fake
     def _(x):
-        print("absop")
+        # print("absop")
+        return x
+    max = register_custom_op(op_library.max)
+    @max.register_fake
+    def _(x, y):
+        # print("maxop")
         return x
 
     config = BertConfig()

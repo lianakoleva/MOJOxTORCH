@@ -32,47 +32,53 @@ struct Abs:
         target: StaticString,
     ](
         out: OutputTensor[type = DType.uint8, rank=3],
-        in: InputTensor[type = DType.uint8, rank=3],
+        x: InputTensor[type = DType.uint8, rank=3],
         ctx: DeviceContextPtr,
     ) raises:
         @parameter
         @always_inline
         fn absFunc[
             simd_width: Int
-        ](idx: IndexList[out.rank]) -> SIMD[DType.uint8, simd_width]:
-            var i = idx[0]
-            var j = idx[1]
-            var k = idx[2]
+        ](idxs: IndexList[out.rank]) -> SIMD[DType.uint8, simd_width]:
+            var i = idxs[0]
+            var j = idxs[1]
+            var k = idxs[2]
 
             var idx = IndexList[3](i, j, k)
 
-            var val = in.load[simd_width](idx).cast[DType.float32]()
+            var val = x.load[simd_width](idx).cast[DType.float32]()
 
             return abs(val).cast[DType.uint8]()
 
         foreach[absFunc, target=target, simd_width=1](out, ctx)
 
+@register("max")
+struct Max:
+    @staticmethod
+    fn execute[
+        # The kind of device this is running on: "cpu" or "gpu"
+        target: StaticString,
+    ](
+        out: OutputTensor[type = DType.uint8, rank=3],
+        a: InputTensor[type = DType.uint8, rank=3],
+        b: InputTensor[type = DType.uint8, rank=3],
+        ctx: DeviceContextPtr,
+    ) raises:
+        @parameter
+        @always_inline
+        fn maxFunc[
+            simd_width: Int
+        ](idxs: IndexList[out.rank]) -> SIMD[DType.uint8, simd_width]:
+            var i = idxs[0]
+            var j = idxs[1]
+            var k = idxs[2]
 
-#   for k in range(in_tens.dim(2)):
-#             #             let val = in_tens[i, j, k]
-#             #             out_tens[i, j, k] = val if val >= 0 else -val
-#         else:
-#             # For GPU, we can use vectorized operations
-#             # let size = in_tens.num_elements()
-#             # @parameter
-#             # fn process_element[simd_width: Int](idx: Int):
-#             #     let val = in_tens.simd_load[simd_width](idx)
-#             #     let abs_val = val if val >= 0 else -val
-#             #     out_tens.simd_store[simd_width](idx, abs_val)
-            
-#             #vectorize[8](size, process_element)
+            var idx = IndexList[3](i, j, k)
 
-#             @parameter
-#             @always_inline
-#             fn func[width: Int](idx: IndexList[x.rank]) -> SIMD[x.type, width]:
-#                 if x.load[width](idx) > 0:
-#                     return x.load[width](idx)
-#                 else:
-#                     return -x.load[width](idx)
+            var val_a = a.load[simd_width](idx).cast[DType.float32]()
+            var val_b = b.load[simd_width](idx).cast[DType.float32]()
 
-#             foreach[func, target=target](out, ctx)
+            return max(val_a, val_b).cast[DType.uint8]()
+
+        foreach[maxFunc, target=target, simd_width=1](out, ctx)
+

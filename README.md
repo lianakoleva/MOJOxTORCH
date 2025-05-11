@@ -6,6 +6,6 @@
 
 ### kernels todo
 - [x] torch.abs
-- [] torch.max
+- [x] torch.max
 - [] torch.allclose
 - [] torch.nn.functional.cosine_similarity

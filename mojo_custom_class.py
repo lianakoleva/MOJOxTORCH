@@ -44,7 +44,7 @@ class CustomOpLibrary:
 
     def __init__(self, path: Path):
         devices = [] if accelerator_count() == 0 else [Accelerator()]
-        print("__init__devices", devices)
+        # print("__init__devices", devices)
         self._context = Context()
         self._kernel_library = KernelLibrary(self._context, [])
         self._session = InferenceSession(devices=devices)
@@ -91,13 +91,13 @@ def convert_device(device: torch.device) -> DeviceRef:
     type = device.type
     index = device.index or 0
     if type == "cpu":
-        print("cpu")
+        # print("cpu")
         return DeviceRef.CPU(index)
     elif type == "cuda":
-        print("cuda")
+        # print("cuda")
         return DeviceRef.GPU(index)
     else:
-        print("unknown")
+        # print("unknown")
         raise TypeError(f"Unable to convert {type} to a MAX device type.")
 
 
@@ -147,8 +147,8 @@ def custom_op_graph(op: CustomOp, *args, out_like: list[torch.Tensor]) -> Graph:
 
 def op_signature(op: mlir.Operation) -> inspect.Signature:
     # TODO: support non-dps outputs
-    for key in op.attributes:
-        print("key = ", key)
+    # for key in op.attributes:
+    # print("key = ", key)
     # print("op.attributes ", op.attributes)
     num_dps_outputs = op.attributes["mogg.num_dps_outputs"].value
     io_specs = [attr.value for attr in op.attributes["mogg.args_io_specs"]]
