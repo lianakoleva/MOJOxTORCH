@@ -70,13 +70,13 @@ struct CosineSimilarity:
     @staticmethod
     fn execute[
         target: StaticString,
-        dim: Int = 1,
-        eps: Float64 = 1e-8,
-        # TODO: use eps
     ](
         out: OutputTensor,
         x: InputTensor[type = out.type, rank = out.rank + 1],
         y: InputTensor[type = out.type, rank = out.rank + 1],
+        # TODO: use dim, eps
+        dim: Int,
+        eps: Float64,
         ctx: DeviceContextPtr,
     ) raises:
         @parameter

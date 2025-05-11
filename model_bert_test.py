@@ -30,7 +30,7 @@ def test_accuracy_bert(prompt, dtype):
         return False
     cosine_similarity = register_custom_op(op_library.cosine_similarity)
     @cosine_similarity.register_fake
-    def _(x, y):
+    def _(x, y, dim, eps):
         return 0.0
 
     config = BertConfig()
@@ -50,7 +50,9 @@ def test_accuracy_bert(prompt, dtype):
     with torch.no_grad():
         res_outputs = res_model(**res_inputs).last_hidden_state
 
-    maxdiff = torch.max(torch.abs(ref_outputs - res_outputs))
+    max_jit = torch.compile(torch.max, backend="inductor")
+    abs_jit = torch.compile(torch.abs, backend="inductor")
+    maxdiff = max_jit(abs_jit(ref_outputs - res_outputs))
     succeed = True
     if (
         torch.allclose(
@@ -61,7 +63,7 @@ def test_accuracy_bert(prompt, dtype):
         )
         is False
     ):
-        score = torch.nn.functional.cosine_similarity(
+        score = torch.compile(torch.nn.functional.cosine_similarity, backend="inductor")(
             ref_outputs.flatten(),
             res_outputs.flatten(),
             dim=0,
