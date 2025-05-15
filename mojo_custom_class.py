@@ -69,6 +69,8 @@ class CustomOp:
 
 def convert_type(dtype: torch.dtype) -> DType:
     table: dict[torch.dtype, DType] = {
+        torch.bool: DType.bool,
+        torch.float16: DType.float16,
         torch.float32: DType.float32,
         torch.float64: DType.float64,
         torch.int8: DType.int8,

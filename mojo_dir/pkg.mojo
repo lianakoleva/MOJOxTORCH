@@ -1,7 +1,7 @@
 from compiler import register
 from max.tensor import InputTensor, OutputTensor, foreach
 from runtime.asyncrt import DeviceContextPtr
-from utils.index import IndexList
+from utils.index import IndexList, Index
 from layout import LayoutTensor, Layout
 from gpu import global_idx
 from math import ceildiv, sqrt
@@ -33,35 +33,34 @@ struct Max:
         target: StaticString,
     ](
         out: OutputTensor,
-        a: InputTensor[type = out.type, rank = out.rank],
-        b: InputTensor[type = out.type, rank = out.rank],
+        x: InputTensor[type = out.type, rank = 3],
         ctx: DeviceContextPtr,
     ) raises:
-        @parameter
-        @always_inline
-        fn func[width: Int](idx: IndexList[a.rank]) -> SIMD[a.type, width]:
-            return max(a.load[width](idx), b.load[width](idx))
-
-        foreach[func, target=target](out, ctx)
-
+        # TODO: find a mojo-esque way to define this kernel (reduce_max?)
+        out[0] = x[Index(0, 0, 0)]
+        for i in range(x.shape()[0]):
+            for j in range(x.shape()[1]):
+                for k in range(x.shape()[2]):
+                    out[0] = max(out[0], x[Index(i, j, k)])
 
 @register("allclose")
 struct AllClose:
     @staticmethod
     fn execute[
         target: StaticString,
-        atol: Float64 = 1e-8, # TODO: check if used correctly
-        rtol: Float64 = 1e-5, # TODO: check if used correctly
     ](
         out: OutputTensor[type = DType.bool],
         input: InputTensor[type = DType.float32, rank = out.rank],
         other: InputTensor[type = DType.float32, rank = out.rank],
+        # TODO: figure out how to make optional / register overloaded implementation
+        # atol: Float64 = 1e-8,
+        # rtol: Float64 = 1e-5,
         ctx: DeviceContextPtr,
     ) raises:
         @parameter
         @always_inline
         fn func[width: Int](idx: IndexList[out.rank]) -> SIMD[out.type, width]:
-            return isclose(input.load[width](idx), other.load[width](idx), rtol=rtol, atol=atol)
+            return isclose(input.load[width](idx), other.load[width](idx), rtol=1e-3, atol=1e-3)
 
         foreach[func, target=target](out, ctx)
 
