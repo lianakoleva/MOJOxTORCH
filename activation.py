@@ -1,9 +1,9 @@
 # inspired by max.nn.linear.py
 from max.graph import (
-    DeviceRef,
     TensorValue,
 )
-from max.nn.layer import Layer, Module
+from max.nn.layer import Module
+import max.graph.ops
 
 class ReLU(Module):
     """
@@ -66,3 +66,26 @@ class ReLU(Module):
             The result resides on the device specified in :obj:`device`.
         """
         return max(0, x)
+
+
+class Softmax(Module):
+
+    # device: DeviceRef
+    # """The device where matrix operations are performed."""
+
+
+    def __init__(
+        self,
+        # device: DeviceRef,
+        inplace: bool = False,
+    ) -> None:
+        super().__init__()
+
+        # TODO: why does mojo.nn.linear.Linear not complain when device is not passed
+        # self.device = device 
+        self.inplace = inplace
+
+
+    def __call__(self, x: TensorValue) -> TensorValue:
+        return ops.softmax(0, x)
+

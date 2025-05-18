@@ -13,5 +13,8 @@
 - [x] torch.allclose
 - [x] torch.nn.functional.cosine_similarity
 - [x] torch.nn.Linear
-- [x] torch.nn.ReLUg
+- [x] torch.nn.ReLU*
+- [x] torch.nn.Softmax*
 - [ ] BertModel kernels
+
+\**note: do not print properly when printing the model*

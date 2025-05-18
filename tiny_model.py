@@ -6,7 +6,9 @@ from transformers import AutoTokenizer, BertConfig, BertModel
 from mojo_custom_class import CustomOpLibrary, register_custom_op
 from pathlib import Path
 import max.nn.linear
-from relu import ReLU as _relu
+from activation import ReLU as _relu
+from activation import Softmax as _softmax
+
 
 class TinyModel(torch.nn.Module):
 
@@ -25,25 +27,40 @@ class TinyModel(torch.nn.Module):
         x = self.softmax(x)
         return x
 
-def main():
-    op_library = CustomOpLibrary(Path("./kernels.mojopkg"))
-    torch.nn.linear = max.nn.linear.Linear
-    torch.nn.ReLU = _relu
 
+def original():
+    torch.manual_seed(14) # used for testing to guarantee same results
     tinymodel = TinyModel()
-    print('The model:')
+    print('original model:')
     print(tinymodel)
 
-    print('\n\nJust one layer:')
-    print(tinymodel.linear2)
+    return tinymodel
 
-    print('\n\nModel params:')
-    for param in tinymodel.parameters():
-        print(param)
 
-    print('\n\nLayer params:')
-    for param in tinymodel.linear2.parameters():
-        print(param)
+def mojo():
+    torch.manual_seed(14) # used for testing to guarantee same results
+    tinymodel = TinyModel()
+    print('mojo model:')
+    print(tinymodel)
+
+    return tinymodel
+
+
+def main():
+    original_model = original()
+    torch.nn.linear = max.nn.linear.Linear
+    torch.nn.ReLU = _relu
+    torch.nn.Softmax = _softmax
+    mojo_model = mojo()
+    for o_param, m_param in zip(original_model.parameters(), mojo_model.parameters()):
+        assert torch.allclose(o_param, m_param)
+    for o_param, m_param in zip(original_model.linear1.parameters(), mojo_model.linear1.parameters()):
+        assert torch.allclose(o_param, m_param)
+    for o_param, m_param in zip(original_model.linear2.parameters(), mojo_model.linear2.parameters()):
+        assert torch.allclose(o_param, m_param)
+
+    print("mojo model passed 🔥")
+
 
 if __name__ == "__main__":
     main()
