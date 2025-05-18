@@ -6,7 +6,7 @@ from transformers import AutoTokenizer, BertConfig, BertModel
 from mojo_custom_class import CustomOpLibrary, register_custom_op
 from pathlib import Path
 import max.nn.linear
-# import max.graph.ops
+from relu import ReLU as _relu
 
 class TinyModel(torch.nn.Module):
 
@@ -28,7 +28,7 @@ class TinyModel(torch.nn.Module):
 def main():
     op_library = CustomOpLibrary(Path("./kernels.mojopkg"))
     torch.nn.linear = max.nn.linear.Linear
-    # torch.nn.ReLU = max.graph.ops.relu
+    torch.nn.ReLU = _relu
 
     tinymodel = TinyModel()
     print('The model:')

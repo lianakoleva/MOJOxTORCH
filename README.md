@@ -1,7 +1,7 @@
 # 🔥mojo backend for pytorch
 
 ### steps
-1. `pytest model_bert_test.py`
+1. `python tiny_model.py` and/or `python model_bert_test.py`
 2. if changes made to mojo_dir/, `mojo package mojo_dir -o kernels.mojopkg`
 
 ### infra todo
@@ -12,4 +12,6 @@
 - [x] torch.max
 - [x] torch.allclose
 - [x] torch.nn.functional.cosine_similarity
+- [x] torch.nn.Linear
+- [x] torch.nn.ReLUg
 - [ ] BertModel kernels
